@@ -115,12 +115,17 @@ var DEMO=[
   {anio:2026,mes:3,mesN:'mar',val:722097284.55},{anio:2026,mes:4,mesN:'abr',val:667815164.3}
 ];
 
-// Lee datos desde window.PBI_DATA (inyectado por la medida DAX)
-// Si no existen usa DEMO
+// Lee datos desde el parametro ?d= de la URL (inyectado por la medida DAX)
+// Si no existe usa DEMO
 var DATA, LIVE;
 try {
-  if (window.PBI_DATA && Array.isArray(window.PBI_DATA) && window.PBI_DATA.length) {
-    DATA = window.PBI_DATA; LIVE = true;
+  var params = new URLSearchParams(window.location.search);
+  var raw = params.get('d');
+  if (raw) {
+    var parsed = JSON.parse(decodeURIComponent(raw));
+    if (Array.isArray(parsed) && parsed.length) {
+      DATA = parsed; LIVE = true;
+    } else { DATA = DEMO; LIVE = false; }
   } else { DATA = DEMO; LIVE = false; }
 } catch(e) { DATA = DEMO; LIVE = false; }
 
