@@ -115,17 +115,28 @@ var DEMO=[
   {anio:2026,mes:3,mesN:'mar',val:722097284.55},{anio:2026,mes:4,mesN:'abr',val:667815164.3}
 ];
 
-// Lee datos desde el parametro ?d= de la URL (inyectado por la medida DAX)
-// Si no existe usa DEMO
+// Lee datos desde el parametro ?d= de la URL (formato: anio|mes|mesN|val~anio|mes|mesN|val)
+// Si no existe o falla, usa DEMO
 var DATA, LIVE;
 try {
   var params = new URLSearchParams(window.location.search);
   var raw = params.get('d');
   if (raw) {
-    var parsed = JSON.parse(decodeURIComponent(raw));
-    if (Array.isArray(parsed) && parsed.length) {
-      DATA = parsed; LIVE = true;
-    } else { DATA = DEMO; LIVE = false; }
+    var rows = raw.split('~');
+    var parsed = [];
+    rows.forEach(function(r) {
+      var parts = r.split('|');
+      if (parts.length === 4) {
+        parsed.push({
+          anio: parseInt(parts[0], 10),
+          mes:  parseInt(parts[1], 10),
+          mesN: parts[2],
+          val:  parseFloat(parts[3])
+        });
+      }
+    });
+    if (parsed.length) { DATA = parsed; LIVE = true; }
+    else { DATA = DEMO; LIVE = false; }
   } else { DATA = DEMO; LIVE = false; }
 } catch(e) { DATA = DEMO; LIVE = false; }
 
