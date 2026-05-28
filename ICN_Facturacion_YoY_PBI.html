@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--sur:#191d28;--sur2:#1f2433;
+  --bor:rgba(255,255,255,0.08);--txt:#e8eaf0;--mut:#7a8099;--dim:#3d4259;
+  --acc:#3b82f6;--grn:#22c27a;--red:#f25c5c;--amb:#f59e0b
+}
+html,body{background:var(--bg);color:var(--txt);font-family:Arial,sans-serif;font-size:14px;min-height:100vh}
+.shell{display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--bor);background:var(--sur)}
+.badge{background:var(--acc);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;text-transform:uppercase}
+.htitle{font-size:15px;font-weight:600;margin-left:12px}
+.hsub{font-size:11px;color:var(--mut);margin-left:12px}
+main{flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.notice{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--amb);display:none}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:11px 16px}
+.clabel{font-size:12px;color:var(--mut)}
+.csep{font-size:13px;color:var(--dim)}
+select{background:var(--sur2);color:var(--txt);border:1px solid rgba(255,255,255,0.15);border-radius:7px;padding:6px 12px;font-size:13px;cursor:pointer;outline:none}
+.cnote{margin-left:auto;font-size:11px;color:var(--mut)}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:13px 15px;position:relative;overflow:hidden}
+.kpi-ac{position:absolute;top:0;left:0;width:3px;height:100%}
+.klbl{font-size:11px;color:var(--mut);margin-bottom:5px}
+.kval{font-size:20px;font-weight:700}
+.ksub{font-size:11px;color:var(--mut);margin-top:3px}
+.up{color:var(--grn)}.down{color:var(--red)}.neu{color:var(--acc)}
+.panel{background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:16px}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ptitle{font-size:13px;font-weight:500}
+.legend{display:flex;gap:12px}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mut)}
+.ld{width:9px;height:9px;border-radius:2px}
+.tpanel{background:var(--sur);border:1px solid var(--bor);border-radius:12px;overflow:hidden}
+.thead2{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--bor)}
+.mbadge{font-size:11px;color:var(--mut);background:var(--sur2);padding:3px 9px;border-radius:4px}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:500;color:var(--mut);text-transform:uppercase;padding:9px 16px;text-align:left;border-bottom:1px solid var(--bor);background:var(--sur2)}
+th.r{text-align:right}th.c{text-align:center}
+td{padding:9px 16px;border-bottom:1px solid var(--bor);font-size:12px}
+td.r{text-align:right}td.c{text-align:center}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.pup{background:rgba(34,194,122,.15);color:var(--grn)}
+.pdn{background:rgba(242,92,92,.15);color:var(--red)}
+.empty{padding:24px;text-align:center;color:var(--mut)}
+footer{padding:10px 20px;border-top:1px solid var(--bor);display:flex;font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div style="display:flex;align-items:center">
+      <span class="badge">ICN</span>
+      <div>
+        <div class="htitle">Facturacion YoY</div>
+        <div class="hsub">Consulta_ICN Historico Facturacion</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--mut)" id="upd"></div>
+  </header>
+  <main>
+    <div class="notice" id="notice">Modo demostracion - sin datos del modelo.</div>
+    <div class="controls">
+      <span class="clabel">Anio</span>
+      <select id="sb"></select>
+      <span class="csep">vs</span>
+      <select id="sc"></select>
+      <span class="cnote" id="cnote"></span>
+    </div>
+    <div class="kgrid" id="kg"></div>
+    <div class="panel">
+      <div class="ph">
+        <span class="ptitle" id="ct">Facturacion mensual</span>
+        <div class="legend" id="lg"></div>
+      </div>
+      <div id="chart"></div>
+    </div>
+    <div class="tpanel">
+      <div class="thead2">
+        <span class="ptitle">Detalle mensual</span>
+        <span class="mbadge" id="mb"></span>
+      </div>
+      <table>
+        <thead><tr>
+          <th style="width:13%">Mes</th>
+          <th class="r" style="width:21%" id="thb">Base</th>
+          <th class="r" style="width:21%" id="thc">Comp.</th>
+          <th class="r" style="width:23%">Variacion $</th>
+          <th class="c" style="width:22%">Var. %</th>
+        </tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+  </main>
+  <footer>
+    <span>ICN Facturacion - Power BI</span>
+    <span style="margin-left:auto">Modelo Financiero_ICN_ok</span>
+  </footer>
+</div>
+<script>
+var DEMO=[
+  {anio:2025,mes:1,mesN:'ene',val:417394580.5},{anio:2025,mes:2,mesN:'feb',val:549203984.55},
+  {anio:2025,mes:3,mesN:'mar',val:543501835.5},{anio:2025,mes:4,mesN:'abr',val:531621045.55},
+  {anio:2025,mes:5,mesN:'may',val:477141362.09},{anio:2025,mes:6,mesN:'jun',val:333932875},
+  {anio:2025,mes:7,mesN:'jul',val:653080416.8},{anio:2025,mes:8,mesN:'ago',val:615495953.4},
+  {anio:2025,mes:9,mesN:'sep',val:714863492.02},{anio:2025,mes:10,mesN:'oct',val:689737421},
+  {anio:2025,mes:11,mesN:'nov',val:775574371},{anio:2025,mes:12,mesN:'dic',val:682605671.65},
+  {anio:2026,mes:1,mesN:'ene',val:444646039.5},{anio:2026,mes:2,mesN:'feb',val:608059716.6},
+  {anio:2026,mes:3,mesN:'mar',val:722097284.55},{anio:2026,mes:4,mesN:'abr',val:667815164.3}
+];
+
+// Lee datos desde window.PBI_DATA (inyectado por la medida DAX)
+// Si no existen usa DEMO
+var DATA, LIVE;
+try {
+  if (window.PBI_DATA && Array.isArray(window.PBI_DATA) && window.PBI_DATA.length) {
+    DATA = window.PBI_DATA; LIVE = true;
+  } else { DATA = DEMO; LIVE = false; }
+} catch(e) { DATA = DEMO; LIVE = false; }
+
+var CB='#3b82f6', CG='#22c27a';
+var MN=['','ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+function fm(v){ return '$'+Math.round(v/1e6).toLocaleString('es-CO')+'M'; }
+function fd(v){ return (v>=0?'+':'-')+'$'+Math.round(Math.abs(v)/1e6).toLocaleString('es-CO')+'M'; }
+function fp(v){ return (v>=0?'+':'')+(v*100).toFixed(1)+'%'; }
+
+function svgChart(p) {
+  if (!p.length) return '<div class="empty">Sin datos</div>';
+  var W=580,H=200,PL=48,PR=12,PT=8,PB=30;
+  var cW=W-PL-PR, cH=H-PT-PB;
+  var mx=0;
+  p.forEach(function(r){ if(r.base>mx)mx=r.base; if(r.comp>mx)mx=r.comp; });
+  mx = mx * 1.15;
+  var gW=cW/p.length, bW=Math.min(gW*0.33,24), gap=bW*0.4;
+  var gl='', yl='', bars='', lbs='';
+  for (var i=0; i<=4; i++) {
+    var v=mx*i/4, y=PT+cH-(cH*i/4);
+    gl += '<line x1="'+PL+'" y1="'+y.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+y.toFixed(1)+'" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>';
+    yl += '<text x="'+(PL-4)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" fill="#7a8099" font-size="9">$'+Math.round(v/1e6)+'M</text>';
+  }
+  p.forEach(function(r,i) {
+    var cx=PL+gW*(i+0.5), x1=cx-gap/2-bW, x2=cx+gap/2;
+    var hb=cH*(r.base/mx), hc=cH*(r.comp/mx);
+    bars += '<rect x="'+x1.toFixed(1)+'" y="'+(PT+cH-hb).toFixed(1)+'" width="'+bW+'" height="'+hb.toFixed(1)+'" fill="'+CB+'" rx="3"/>';
+    bars += '<rect x="'+x2.toFixed(1)+'" y="'+(PT+cH-hc).toFixed(1)+'" width="'+bW+'" height="'+hc.toFixed(1)+'" fill="'+CG+'" rx="3"/>';
+    lbs  += '<text x="'+cx.toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" fill="#7a8099" font-size="10">'+r.mesN+'</text>';
+  });
+  var by=PT+cH;
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'
+    +gl
+    +'<line x1="'+PL+'" y1="'+PT+'" x2="'+PL+'" y2="'+by+'" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>'
+    +'<line x1="'+PL+'" y1="'+by+'" x2="'+(W-PR)+'" y2="'+by+'" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>'
+    +yl+bars+lbs+'</svg>';
+}
+
+function render(yB, yC) {
+  var dB=DATA.filter(function(d){return d.anio===yB;});
+  var dC=DATA.filter(function(d){return d.anio===yC;});
+  var mc=dB.map(function(d){return d.mes;})
+           .filter(function(m){return dC.some(function(d){return d.mes===m;});})
+           .sort(function(a,b){return a-b;});
+  var pairs=mc.map(function(m){
+    var b=dB.find(function(d){return d.mes===m;});
+    var c=dC.find(function(d){return d.mes===m;});
+    return {mes:m,mesN:b.mesN,base:b.val,comp:c.val,delta:c.val-b.val,ratio:(c.val-b.val)/b.val};
+  });
+  var tB=0,tC=0;
+  pairs.forEach(function(r){tB+=r.base;tC+=r.comp;});
+  var tD=tC-tB, tR=tD/tB;
+  var mej=pairs.slice().sort(function(a,b){return b.ratio-a.ratio;})[0]||null;
+
+  document.getElementById('thb').textContent=yB;
+  document.getElementById('thc').textContent=yC;
+  document.getElementById('ct').textContent='Facturacion - '+yB+' vs '+yC;
+  document.getElementById('mb').textContent=mc.length+' mes'+(mc.length!==1?'es':'');
+  document.getElementById('cnote').textContent=mc.length?'Comunes: '+MN[mc[0]]+'-'+MN[mc[mc.length-1]]:'Sin periodos comunes';
+  document.getElementById('lg').innerHTML=
+    '<div class="li"><span class="ld" style="background:'+CB+'"></span>'+yB+'</div>'+
+    '<div class="li"><span class="ld" style="background:'+CG+'"></span>'+yC+'</div>';
+
+  var kpis=!pairs.length
+    ? [{l:'Sin periodos comunes',v:'--',s:'',ac:''}]
+    : [
+        {l:'Total '+yC, v:fm(tC), s:mc.length+' meses', ac:'neu'},
+        {l:'Total '+yB, v:fm(tB), s:'Anio base', ac:'neu'},
+        {l:'Variacion $', v:fd(tD), s:'', ac:tD>=0?'up':'down'},
+        {l:'YoY %', v:fp(tR), s:mc.length+' meses', ac:tR>=0?'up':'down'},
+        mej ? {l:'Mejor mes', v:mej.mesN+' '+fp(mej.ratio), s:fm(mej.base)+' a '+fm(mej.comp), ac:mej.ratio>=0?'up':'down'} : null
+      ].filter(Boolean);
+
+  var kg=document.getElementById('kg'); kg.innerHTML='';
+  kpis.forEach(function(k){
+    var ac=k.ac==='up'?'#22c27a':k.ac==='down'?'#f25c5c':k.ac==='neu'?'#3b82f6':'transparent';
+    kg.innerHTML+='<div class="kpi">'
+      +'<div class="kpi-ac" style="background:'+ac+'"></div>'
+      +'<div class="klbl">'+k.l+'</div>'
+      +'<div class="kval '+k.ac+'">'+k.v+'</div>'
+      +(k.s?'<div class="ksub">'+k.s+'</div>':'')
+      +'</div>';
+  });
+
+  document.getElementById('chart').innerHTML=svgChart(pairs);
+
+  var tb=document.getElementById('tb');
+  tb.innerHTML=!pairs.length
+    ? '<tr><td colspan="5" class="empty">Sin meses comunes.</td></tr>'
+    : pairs.map(function(r){
+        return '<tr>'
+          +'<td>'+r.mesN+'</td>'
+          +'<td class="r" style="color:var(--mut)">'+fm(r.base)+'</td>'
+          +'<td class="r">'+fm(r.comp)+'</td>'
+          +'<td class="r" style="color:'+(r.delta>=0?'var(--grn)':'var(--red)')+'">'+fd(r.delta)+'</td>'
+          +'<td class="c"><span class="pill '+(r.delta>=0?'pup':'pdn')+'">'+fp(r.ratio)+'</span></td>'
+          +'</tr>';
+      }).join('');
+}
+
+(function init(){
+  if (!LIVE) document.getElementById('notice').style.display='block';
+  document.getElementById('upd').textContent=
+    'Actualizado: '+new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+
+  var years=[];
+  DATA.forEach(function(d){ if(years.indexOf(d.anio)<0) years.push(d.anio); });
+  years.sort();
+
+  var sb=document.getElementById('sb'), sc=document.getElementById('sc');
+  years.forEach(function(y){
+    sb.innerHTML+='<option value="'+y+'">'+y+'</option>';
+    sc.innerHTML+='<option value="'+y+'">'+y+'</option>';
+  });
+  sb.value=years[0];
+  sc.value=years[years.length-1];
+
+  sb.addEventListener('change',function(){ render(+sb.value,+sc.value); });
+  sc.addEventListener('change',function(){ render(+sb.value,+sc.value); });
+  render(+sb.value, +sc.value);
+}());
+</script>
+</body>
+</html>
